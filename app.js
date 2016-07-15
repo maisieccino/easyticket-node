@@ -10,7 +10,9 @@ var users = require('./routes/users');
 
 var app = express();
 
-var knex = require('./db');
+var Model = require('objection').Model;
+var Knex = require('knex');
+var knex = Knex(require('./knexfile').development);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

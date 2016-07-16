@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const express = require('express');
 const Promise = require('bluebird');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const knexConfig = require('./knexfile');
 const registerApi = require('./api');
 const Model = require('objection').Model;
@@ -38,9 +39,9 @@ app.use(function (err, req, res, next) {
   }
 });
 
-const server = app.listen(8641, function () {
-  console.log('Example app listening at port %s', server.address().port);
-});
+//const server = app.listen(process.env.PORT || 3000, function () {
+//  console.log('Example app listening at port %s', server.address().port);
+//});
 
 // Wrap each express route method with bluebird `Promise.coroutine` so that we can
 // use generator functions and `yield` to simulate ES7 async-await pattern.
@@ -69,3 +70,5 @@ function monkeyPatchRouteMethods(app) {
 function isGenerator(fn) {
   return fn && fn.constructor && fn.constructor.name === 'GeneratorFunction';
 }
+
+module.exports = app;

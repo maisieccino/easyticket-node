@@ -1,70 +1,71 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+'use strict';
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
+const _ = require('lodash');
+const Knex = require('knex');
+const morgan = require('morgan');
+const express = require('express');
+const Promise = require('bluebird');
+const bodyParser = require('body-parser');
+const knexConfig = require('./knexfile');
+const registerApi = require('./api');
+const Model = require('objection').Model;
 
-var app = express();
+// Initialize knex.
+const knex = Knex(knexConfig.development);
 
-var Model = require('objection').Model;
-var Knex = require('knex');
-var knex = Knex(require('./knexfile').development);
+// Bind all Models to a knex instance. If you only have one database in
+// your server this is all you have to do. For multi database systems, see
+// the Model.bindKnex method.
+Model.knex(knex);
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'hbs');
+const app = express()
+  .use(bodyParser.json())
+  .use(morgan('dev'))
+  .set('json spaces', 2);
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(require('node-sass-middleware')({
-  src: path.join(__dirname, 'public'),
-  dest: path.join(__dirname, 'public'),
-  indentedSyntax: true,
-  sourceMap: true
-}));
-app.use(express.static(path.join(__dirname, 'public')));
+monkeyPatchRouteMethods(app);
 
-app.use('/', routes);
-app.use('/users', users);
+// Register our REST API.
+registerApi(app);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+// Error handling. The `ValidionError` instances thrown by objection.js have a `statusCode`
+// property that is sent as the status code of the response.
+app.use(function (err, req, res, next) {
+  if (err) {
+    res.status(err.statusCode || err.status || 500).send(err.data || err.message || {});
+  } else {
+    next();
+  }
 });
 
-// error handlers
+const server = app.listen(8641, function () {
+  console.log('Example app listening at port %s', server.address().port);
+});
 
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-      message: err.message,
-      error: err
-    });
+// Wrap each express route method with bluebird `Promise.coroutine` so that we can
+// use generator functions and `yield` to simulate ES7 async-await pattern.
+function monkeyPatchRouteMethods(app) {
+  ['get', 'put', 'post', 'delete', 'patch'].forEach(function (routeMethodName) {
+    const originalRouteMethod = app[routeMethodName];
+
+    app[routeMethodName] = function () {
+      const args = _.toArray(arguments);
+      const originalRouteHandler = _.last(args);
+
+      if (isGenerator(originalRouteHandler)) {
+        const routeHandler = Promise.coroutine(originalRouteHandler);
+
+        // Overwrite the route handler.
+        args[args.length - 1] = function (req, res, next) {
+          routeHandler(req, res, next).catch(next);
+        };
+      }
+
+      return originalRouteMethod.apply(this, args);
+    };
   });
 }
 
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.render('error', {
-    message: err.message,
-    error: {}
-  });
-});
-
-
-module.exports = app;
+function isGenerator(fn) {
+  return fn && fn.constructor && fn.constructor.name === 'GeneratorFunction';
+}

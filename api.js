@@ -5,7 +5,7 @@ const transaction = require('objection').transaction;
 module.exports = function (app) {
 
     // users API.
-    require('./api/users')(app);
+    require('./api/user')(app);
 
 
     app.get('/', function (req, res) {

@@ -1,3 +1,4 @@
+'use esversion: 6';
 var utils = require('./utils');
 
 const transaction = require('objection').transaction;

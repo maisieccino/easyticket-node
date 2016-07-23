@@ -1,3 +1,10 @@
+//
+//            ORGUSER MODEL
+//  ===================================
+//  Maps users to organisations.
+//  One organisation can have 0 or more
+//  users.
+
 'use strict';
 
 const Model         = require('objection').Model;
@@ -7,6 +14,10 @@ const Organisation  = require('./Organisation');
 class OrgUser extends Model {
     static get tableName() {
         return 'org_user';
+    }
+
+    $afterGet(context) {
+        this.$omit(["user_id","org_id"]);
     }
 
     static get jsonSchema() {
@@ -44,4 +55,3 @@ class OrgUser extends Model {
 }
 
 module.exports = OrgUser;
-

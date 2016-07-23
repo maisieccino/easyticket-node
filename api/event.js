@@ -28,4 +28,17 @@ module.exports = function(app) {
 
         res.send(event);
     });
+
+    // GET an event's ticket tiers.
+    // TODO: Add ticket quantity remaining.
+    app.get('/event/:id/tiers', function* (req, res) {
+        const event = yield Event
+            .query()
+            .findById(req.params.id);
+
+        const tiers = yield event
+            .$relatedQuery('ticket_tiers');
+
+        res.status(tiers.length? 200 : 204).send(tiers);
+    });
 };

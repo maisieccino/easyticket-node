@@ -21,7 +21,19 @@ class Venue extends Model {
             }
         };
     }
+
+    static get relationMappings() {
+        return {
+            events: {
+                relation: Model.HasManyRelation,
+                modelClass: __dirname + '/Event',
+                join: {
+                    from: "venue.id",
+                    to: "event.venue"
+                }
+            }
+        };
+    }
 }
 
 module.exports = Venue;
-

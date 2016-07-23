@@ -1,4 +1,4 @@
-// 
+//
 //               USER MODEL
 //  ===================================
 //  Defines a user. Duh.
@@ -11,7 +11,7 @@ class User extends Model {
     static get tableName() {
         return 'user';
     }
-    
+
 
     // Executed whenever a select is performed.
     $afterGet(context) {
@@ -30,7 +30,7 @@ class User extends Model {
         return {
             type: 'object',
             required: ['name', 'email'],
-            
+
             properties: {
                 id: { type: 'integer'},
                 name: { type: 'string'},

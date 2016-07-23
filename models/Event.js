@@ -35,7 +35,7 @@ class Event extends Model {
     static get relationMappings() {
         return {
             venue: {
-                relation: Model.HasOneRelation,
+                relation: Model.BelongsToOneRelation,
                 modelClass: Venue,
                 join: {
                     from: 'event.venue',
@@ -43,16 +43,24 @@ class Event extends Model {
                 }
             },
             organisation: {
-                relation: Model.HasOneRelation,
+                relation: Model.BelongsToOneRelation,
                 modelClass: Organisation,
                 join: {
                     from: 'event.organisation',
                     to: 'organisation.id'
                 }
+            },
+
+            ticket_tiers: {
+                relation: Model.HasManyRelation,
+                modelClass: __dirname + '/TicketTier',
+                join: {
+                    from: 'event.id',
+                    to: 'ticket_tier.event'
+                }
             }
-        }
+        };
     }
 }
 
 module.exports = Event;
-

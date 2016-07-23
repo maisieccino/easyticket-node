@@ -6,8 +6,15 @@ module.exports = function (app) {
 
     // users API.
     require('./api/user')(app);
+
+    // events API.
     require('./api/event')(app);
+
+    // org API.
     require('./api/org')(app);
+
+    // venue API.
+    require('./api/venue')(app);
 
 
     app.get('/', function (req, res) {

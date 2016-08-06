@@ -15,7 +15,7 @@ module.exports = function(app) {
     });
 
     // GET all venues. (limited to 20)
-    router.get('/', function* (req, res) {
+    router.get('/', function* () {
         const venues = yield Venue
             .query()
             .limit(20);
@@ -23,32 +23,33 @@ module.exports = function(app) {
         if (!venues)
             throw utils.throwNotFound();
 
-        res.send(venues);
+        this.body = venues;
     });
 
     // GET a venue by id.
-    router.get('/:id', function *(req, res) {
+    router.get('/:id', function *() {
         const venue = yield Venue
             .query()
-            .findById(req.params.id);
+            .findById(this.params.id);
 
         if (!venue)
             throw utils.throwNotFound();
 
-        res.send(venue);
+        this.body = venue;
     });
 
     // GET a list of events happening at a venue.
     // TODO: allow filtering by date.
-    router.get('/:id/events', function* (req, res) {
+    router.get('/:id/events', function* () {
         const events = yield Event
             .query()
-            .where('venue', '=', req.params.id)
+            .where('venue', '=', this.params.id)
             .limit(20);
 
         // Send a 204 EMPTY RESPONSE if there's no events.
         // Otherwise send 200 OK.
-        res.status(events.length? 200 : 204).send(events);
+        this.status = events.length? 200 : 204;
+        this.body = events;
     });
 
     app.use(router.routes());

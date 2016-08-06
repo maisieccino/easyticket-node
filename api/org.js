@@ -16,32 +16,35 @@ module.exports = function(app) {
         prefix: '/api/org'
     });
 
-    router.post('/', function* (req, res) {
-        console.log(req.body);
+    router.post('/', function* () {
+        console.log(this.body);
         const org = yield Org
             .query()
-            .insertAndFetch(req.body);
+            .insertAndFetch(this.request.body)
+            .catch(function (err) {
+                throw new Error('{error: "'+err+'"}');
+            });
 
-        res.send(org);
+        this.body = org;
     });
 
-    router.get('/:id', function* (req, res) {
+    router.get('/:id', function* () {
         const org = yield Org
             .query()
-            .findById(req.params.id)
+            .findById(this.params.id)
             .eager('users.user');
         if (!org) {
-            utils.throwNotFound();
+            utils.throwNotFound("org");
         }
 
-        res.send(org);
+        this.body = org;
     });
 
     // GET a list of users that belong to an organisation.
-    router.get('/:id/users', function* (req, res) {
+    router.get('/:id/users', function* () {
         const org = yield Org
             .query()
-            .findById(req.params.id);
+            .findById(this.params.id);
 
         if (!org)
             utils.throwNotFound();
@@ -51,20 +54,20 @@ module.exports = function(app) {
             .eager('user');
 
         if (!users.length)
-            res.status(204).send(users);
-        else
-            res.send(users);
+            this.status = 204.
+        this.body = users;
     });
 
     // GET a list of events that belong to an organisation.
-    router.get('/:id/events', function* (req, res) {
+    router.get('/:id/events', function* () {
         const events = yield Event
             .query()
-            .where('organisation', '=', req.params.id)
+            .where('organisation', '=', this.params.id)
             .omit(['organisation'])
             .eager('venue');
 
-        res.status(events.length? 200 : 204).send(events);
+        this.status = events.length? 200 : 204
+        this.body = events;
     });
 
     app.use(router.routes());

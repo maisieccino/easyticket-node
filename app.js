@@ -24,18 +24,28 @@ Model.knex(knex);
 
 const app = koa();
 
+// body parser
+app.use(require('koa-bodyparser')({
+    strict: true
+}));
+
+// error handling and jsonifying
 app.use(function* (next) {
     try {
         yield next;
-        var body = this.body;
-        if (JSON.parse(body)) {
-            this.body = JSON.stringify(body, '\t', 2);
+        try {
+            this.body = JSON.stringify(this.body, '\t', 2);
+        }
+        catch (e) {
         }
     }
     catch (err) {
         this.status = err.error || 500;
         this.body = err.message;
     }
+
+    // Debug for log
+    console.log (this.method + ' ' + this.path + ' - ' + this.status);
 });
 
 // Register our REST API

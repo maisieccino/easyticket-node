@@ -1,9 +1,10 @@
-'use strict';
+/*jshint esversion: 6 */
+/*jshint node: true */
+"use strict";
 
 const transaction = require('objection').transaction;
 
 module.exports = function (app) {
-
     // users API.
     require('./api/user')(app);
 
@@ -16,8 +17,4 @@ module.exports = function (app) {
     // venue API.
     require('./api/venue')(app);
 
-
-    app.get('/', function (req, res) {
-        res.send('hey');
-    });
 };

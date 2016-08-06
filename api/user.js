@@ -1,26 +1,37 @@
-'use esversion: 6';
+/*jshint esversion: 6 */
+/*jshint node: true */
+"use strict";
+
+var Router = require('koa-router');
+
 var utils = require('./utils');
 
 const transaction = require('objection').transaction;
 const User = require('../models/User');
 
 module.exports = function(app) {
-    app.get('/user/count', function* (req, res) {
+    var router = new Router({
+        prefix: '/api/user'
+    });
+    router.get('/count', function*() {
         const count = yield User
             .query();
 
-        res.send({count: count.length});
+        this.body = {count: count.length};
     });
 
-    app.get('/user/:id', function* (req, res) {
+    router.get('/:id', function* () {
         const user = yield User
             .query()
-            .findById(req.params.id);
+            .findById(this.params.id);
 
         if (typeof(user) === 'undefined') {
-            utils.throwNotFound();
+            this.throw('{error: "user not found"}', 404);
         }
 
-        res.send(user);
+        this.body = user;
     });
+
+    app.use(router.routes());
+    app.use(router.allowedMethods());
 };

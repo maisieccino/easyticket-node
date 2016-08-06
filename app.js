@@ -1,14 +1,12 @@
-'use strict';
+/*jshint esversion: 6 */
+/*jshint node: true */
+"use strict";
 
 const _ = require('lodash');
+const koa = require('koa');
 const Knex = require('knex');
 const morgan = require('morgan');
-const express = require('express');
-const Promise = require('bluebird');
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
 const knexConfig = require('./knexfile');
-const registerApi = require('./api');
 const Model = require('objection').Model;
 
 // Initialize knex.
@@ -19,56 +17,28 @@ const knex = Knex(knexConfig.development);
 // the Model.bindKnex method.
 Model.knex(knex);
 
-const app = express()
-  .use(bodyParser.json())
-  .use(morgan('dev'))
-  .set('json spaces', 2);
+// const app = express()
+//   .use(bodyParser.json())
+//   .use(morgan('dev'))
+//   .set('json spaces', 2);
 
-monkeyPatchRouteMethods(app);
+const app = koa();
 
-// Register our REST API.
-registerApi(app);
-
-// Error handling. The `ValidionError` instances thrown by objection.js have a `statusCode`
-// property that is sent as the status code of the response.
-app.use(function (err, req, res, next) {
-  if (err) {
-    res.status(err.statusCode || err.status || 500).send(err.data || err.message || {});
-  } else {
-    next();
-  }
+app.use(function* (next) {
+    try {
+        yield next;
+        var body = this.body;
+        if (JSON.parse(body)) {
+            this.body = JSON.stringify(body, '\t', 2);
+        }
+    }
+    catch (err) {
+        this.status = err.error || 500;
+        this.body = err.message;
+    }
 });
 
-//const server = app.listen(process.env.PORT || 3000, function () {
-//  console.log('Example app listening at port %s', server.address().port);
-//});
-
-// Wrap each express route method with bluebird `Promise.coroutine` so that we can
-// use generator functions and `yield` to simulate ES7 async-await pattern.
-function monkeyPatchRouteMethods(app) {
-  ['get', 'put', 'post', 'delete', 'patch'].forEach(function (routeMethodName) {
-    const originalRouteMethod = app[routeMethodName];
-
-    app[routeMethodName] = function () {
-      const args = _.toArray(arguments);
-      const originalRouteHandler = _.last(args);
-
-      if (isGenerator(originalRouteHandler)) {
-        const routeHandler = Promise.coroutine(originalRouteHandler);
-
-        // Overwrite the route handler.
-        args[args.length - 1] = function (req, res, next) {
-          routeHandler(req, res, next).catch(next);
-        };
-      }
-
-      return originalRouteMethod.apply(this, args);
-    };
-  });
-}
-
-function isGenerator(fn) {
-  return fn && fn.constructor && fn.constructor.name === 'GeneratorFunction';
-}
+// Register our REST API
+require('./api')(app);
 
 module.exports = app;

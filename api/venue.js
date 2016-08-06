@@ -1,15 +1,21 @@
-'use esversion: 6';
-var utils = require('./utils');
+/*jshint esversion: 6 */
+/*jshint node: true */
+"use strict";
 
-const Promise       = require('bluebird');
-const transaction   = require('objection').transaction;
-const Venue         = require('../models/Venue');
+const transaction  = require('objection').transaction;
+const Venue        = require('../models/Venue');
 const Event        = require('../models/Event');
+const Router       = require('koa-router');
+const utils        = require('./utils');
 
 module.exports = function(app) {
 
+    var router = new Router({
+        prefix: "/api/venue"
+    });
+
     // GET all venues. (limited to 20)
-    app.get('/venue', function* (req, res) {
+    router.get('/', function* (req, res) {
         const venues = yield Venue
             .query()
             .limit(20);
@@ -21,7 +27,7 @@ module.exports = function(app) {
     });
 
     // GET a venue by id.
-    app.get('/venue/:id', function *(req, res) {
+    router.get('/:id', function *(req, res) {
         const venue = yield Venue
             .query()
             .findById(req.params.id);
@@ -34,7 +40,7 @@ module.exports = function(app) {
 
     // GET a list of events happening at a venue.
     // TODO: allow filtering by date.
-    app.get('/venue/:id/events', function* (req, res) {
+    router.get('/:id/events', function* (req, res) {
         const events = yield Event
             .query()
             .where('venue', '=', req.params.id)
@@ -44,4 +50,7 @@ module.exports = function(app) {
         // Otherwise send 200 OK.
         res.status(events.length? 200 : 204).send(events);
     });
+
+    app.use(router.routes());
+    app.use(router.allowedMethods());
 };

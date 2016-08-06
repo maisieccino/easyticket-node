@@ -1,7 +1,9 @@
-function throwNotFound() {
-    const error = new Error();
-    error.statusCode = 404;
-    throw error;
+/*jshint esversion: 6 */
+/*jshint node: true */
+"use strict";
+
+function throwNotFound (noun) {
+    throw new Error(noun + " not found");
 }
 
 module.exports = {

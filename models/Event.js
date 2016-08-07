@@ -1,4 +1,6 @@
-'use strict';
+/*jshint esversion: 6 */
+/*jshint node: true */
+"use strict";
 
 const Model         = require('objection').Model;
 const Venue         = require('./Venue');

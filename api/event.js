@@ -40,15 +40,16 @@ module.exports = function (app) {
 
     // GET an event's ticket tiers.
     // TODO: Add ticket quantity remaining.
-    router.get('/:id/tiers', function* (req, res) {
+    router.get('/:id/tiers', function* () {
         const event = yield Event
             .query()
-            .findById(req.params.id);
+            .findById(this.params.id);
 
         const tiers = yield event
             .$relatedQuery('ticket_tiers');
 
-        res.status(tiers.length? 200 : 204).send(tiers);
+        this.status = tiers.length? 200 : 204
+        this.body = tiers;
     });
 
     app.use(router.routes());

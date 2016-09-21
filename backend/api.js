@@ -17,4 +17,7 @@ module.exports = function (app) {
     // venue API.
     require('./api/venue')(app);
 
+    // API Key API
+    require('./api/api_key')(app);
+
 };

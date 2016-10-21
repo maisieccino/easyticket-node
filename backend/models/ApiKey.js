@@ -11,6 +11,10 @@ class ApiKey extends Model {
         return 'api_key';
     }
 
+    static get idColumn() {
+        return 'key';
+    }
+
     static get jsonSchema() {
         return {
             type: 'object',

@@ -17,7 +17,6 @@ module.exports = function(app) {
     });
 
     router.post('/', function* () {
-        console.log(this.body);
         const org = yield Org
             .query()
             .insertAndFetch(this.request.body)

@@ -5,6 +5,7 @@
 var Router = require('koa-router');
 
 var utils = require('./utils');
+var keyCheck = require('../keyCheck');
 
 const transaction = require('objection').transaction;
 const ApiKey = require('../models/ApiKey');
@@ -46,6 +47,31 @@ module.exports = function (app) {
             });
 
             this.body = masterKey;
+    });
+
+    router.post('/create', keyCheck, function* () {
+        var authLevel = parseInt(this.response.headers['x-auth-level']);
+
+        if (authLevel > 1) {
+            this.throw('{ error: "You do not have permission to grant API keys."}', 403);
+        }
+
+        if (this.request.body.limit > 500 && authLevel > 0) {
+            this.throw('{ error: "Rate limit must be less than 500 requests per hour."}', 401);
+        }
+
+        if (this.request.body.authority_level <= authLevel) {
+            this.throw('{ error: "You do not have permission to create a key with that authority"}', 403);
+        }
+
+        this.request.body.key = ApiKey.generateKey();
+        this.request.body.limit = this.request.body.limit || 500;
+
+        const key = yield ApiKey
+            .query()
+            .insert(this.request.body);
+
+        this.body = key;
     });
 
     app.use(router.routes());

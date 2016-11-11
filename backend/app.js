@@ -40,7 +40,7 @@ app.use(function* (next) {
         }
     }
     catch (err) {
-        this.status = err.error || 500;
+        this.status = err.status || 500;
         this.body = err.message;
     }
 

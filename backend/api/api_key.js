@@ -34,6 +34,14 @@ module.exports = function (app) {
             this.throw('{error: "Master key already allocated."}', 401);
         }
 
+        if (!this.query.name) {
+            this.throw('{ error: "No name provided" }', 400);
+        }
+
+        if (!this.query.email) {
+            this.throw('{ error: "No email provided" }', 400);
+        }
+
         const masterKey = yield ApiKey
             .query()
             .insert({

@@ -20,8 +20,8 @@ var production = {
         'user': 'postgres',    // The username to connect to the db.
         'pass': 'hunter2',     // The user's password.
         'dbname': 'easyticket' // The name of the db.
-    }
-    
+    },
+
     'rsa': {
         'publicKey': 'key.rsa.pub',
         'privateKey': 'key.rsa'

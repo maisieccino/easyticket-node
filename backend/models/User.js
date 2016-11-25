@@ -7,6 +7,8 @@
 
 'use strict';
 
+const bcrypt = require('bcrypt-nodejs');
+
 const Model = require('objection').Model;
 
 class User extends Model {
@@ -14,6 +16,9 @@ class User extends Model {
         return 'user';
     }
 
+    static get idColumn() {
+        return 'id';
+    }
 
     // Executed whenever a select is performed.
     $afterGet(context) {
@@ -44,6 +49,10 @@ class User extends Model {
                 phone: { type: 'string' }
             }
         };
+    }
+
+    static hashPassword(password) {
+        return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
     }
 }
 

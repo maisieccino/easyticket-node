@@ -39,13 +39,18 @@ module.exports = function(app) {
     });
 
     router.post('/new', keyCheck, function* () {
+        console.log(JSON.stringify(this.request.body, '\t', 2));
+        //TODO: sanitise input
         const user = yield User
             .query()
             .insert({
-                name: this.req.body.name,
-                name_short: this.req.body.name_short,
-
+                name: this.request.body.name,
+                name_short: (this.request.body.name_short? this.request.body.name.short : this.request.body.name.split(" ")[0]),
+                email: this.request.body.email,
+                password_digest: User.hashPassword(this.request.body.password)
             });
+
+        this.body = user;
     });
 
     app.use(router.routes());

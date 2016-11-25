@@ -44,8 +44,14 @@ app.use(function* (next) {
         }
     }
     catch (err) {
-        this.status = err.status || 500;
-        this.body = err.message;
+        if (err.status == 401) {
+            this.status = err.status;
+            this.body = JSON.stringify({"error":"User token missing or invalid"}, '\t', 2);
+        }
+        else {
+            this.status = err.status || 500;
+            this.body = err.message;
+        }
     }
 
     // Debug for log

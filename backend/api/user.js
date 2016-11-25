@@ -26,7 +26,7 @@ module.exports = function(app) {
 
         if (parseInt(this.response.headers['x-auth-level']) > 2) {
             this.throw('{ error: "Not authorised" }', 403);
-        };
+        }
         const user = yield User
             .query()
             .findById(this.params.id);
@@ -36,6 +36,16 @@ module.exports = function(app) {
         }
 
         this.body = user;
+    });
+
+    router.post('/new', keyCheck, function* () {
+        const user = yield User
+            .query()
+            .insert({
+                name: this.req.body.name,
+                name_short: this.req.body.name_short,
+
+            });
     });
 
     app.use(router.routes());

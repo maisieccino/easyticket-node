@@ -2,6 +2,7 @@
 /*jshint node: true */
 "use strict";
 
+const fs = require('fs');
 const _ = require('lodash');
 const koa = require('koa');
 const Knex = require('knex');
@@ -28,6 +29,9 @@ const app = koa();
 app.use(require('koa-bodyparser')({
     strict: true
 }));
+
+const publicKey = fs.readFileSync('key.rsa.pub');
+const privateKey = fs.readFileSync('key.rsa');
 
 // error handling and jsonifying
 app.use(function* (next) {
